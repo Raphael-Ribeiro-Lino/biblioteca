@@ -28,8 +28,8 @@ public class AutorService {
 	}
 
 	@Transactional
-	public void altera(AutorEntity autorConvertido) {
-		autorRepository.save(autorConvertido);
+	public AutorEntity altera(AutorEntity autorConvertido) {
+		return autorRepository.save(autorConvertido);
 	}
 
 	public Page<AutorEntity> listaTodos(Pageable paginacao) {

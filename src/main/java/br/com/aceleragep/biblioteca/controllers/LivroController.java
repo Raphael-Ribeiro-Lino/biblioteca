@@ -1,12 +1,13 @@
 package br.com.aceleragep.biblioteca.controllers;
 
-import java.net.URI;
-
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,8 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import br.com.aceleragep.biblioteca.configs.ControllerConfig;
 import br.com.aceleragep.biblioteca.converts.LivroConvert;
@@ -36,22 +37,19 @@ public class LivroController {
 	private LivroService livroService;
 
 	@PostMapping
-	public ResponseEntity<?> cria(@RequestBody @Valid LivroInput input, UriComponentsBuilder uriBuilder) {
+	@ResponseStatus(value = HttpStatus.CREATED)
+	public LivroOutput cria(@RequestBody @Valid LivroInput input) {
 		LivroEntity livroConvertido = livroConvert.inputToEntity(input);
 		LivroEntity livroCriado = livroService.cria(livroConvertido, input);
-
-		URI uri = uriBuilder.path(ControllerConfig.PRE_URL + "/livros/{id}").buildAndExpand(livroCriado.getId())
-				.toUri();
-		return ResponseEntity.created(uri).body(livroCriado);
+		return livroConvert.entityToOtput(livroCriado);
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<?> altera(@PathVariable Long id, @RequestBody @Valid LivroInput input) {
+	public LivroOutput altera(@PathVariable Long id, @RequestBody @Valid LivroInput input) {
 		LivroEntity livroEncontrado = livroService.buscaPorId(id);
 		livroConvert.copyInputToEntity(input, livroEncontrado);
-		livroService.altera(livroEncontrado);
-
-		return ResponseEntity.noContent().build();
+		LivroEntity livroAlterado = livroService.altera(input, livroEncontrado);
+		return livroConvert.entityToOtput(livroAlterado);
 	}
 
 	@DeleteMapping("/{id}")
@@ -62,7 +60,8 @@ public class LivroController {
 	}
 
 	@GetMapping
-	public Page<LivroOutput> listaTodos(Pageable paginacao) {
+	public Page<LivroOutput> listaTodos(
+			@PageableDefault(page = 0, size = 5, sort = "titulo", direction = Direction.ASC) Pageable paginacao) {
 		Page<LivroEntity> livros = livroService.listaTodos(paginacao);
 		return livroConvert.ListEntityToPageOutput(livros);
 	}
@@ -73,9 +72,4 @@ public class LivroController {
 		return livroConvert.entityToOtput(livroEncontrado);
 	}
 
-	@GetMapping("/autor/{id}")
-	public Page<LivroOutput> buscaPorIdAutor(@PathVariable Long id, Pageable paginacao) {
-		Page<LivroEntity> livrosEncontrados = livroService.buscaPorIdAutor(id, paginacao);
-		return livroConvert.ListEntityToPageOutput(livrosEncontrados);
-	}
 }

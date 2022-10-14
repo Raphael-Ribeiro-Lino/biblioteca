@@ -23,18 +23,14 @@ import com.example.demo.dto.inputs.LivroInput;
 import com.example.demo.dto.outputs.LivroOutput;
 import com.example.demo.entities.AutorEntity;
 import com.example.demo.entities.LivroEntity;
+import com.example.demo.openapi.LivroOpenApi;
 import com.example.demo.services.AutorService;
 import com.example.demo.services.LivroService;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
-
-@Tag(name = "Livro")
 @RestController
 @RequestMapping("/api/livros")
 @CrossOrigin(origins = "*")
-public class LivroController {
+public class LivroController implements LivroOpenApi{
 
 	@Autowired
 	private LivroService livroService;
@@ -45,10 +41,9 @@ public class LivroController {
 	@Autowired
 	private LivroConvert livroConvert;
 
-	@Operation(summary = "Cadastra livro", description = "Cadastra um novo livro no sistema")
 	@PostMapping
 	@ResponseStatus(code = HttpStatus.CREATED)
-	public LivroOutput criaLivro(@Parameter(description = "Representação de um livro") @Valid @RequestBody LivroInput livro) {
+	public LivroOutput criaLivro(@Valid @RequestBody LivroInput livro) {
 		LivroEntity livroEntity = livroConvert.inputToEntity(livro);
 
 		convertAutores(livro, livroEntity);
@@ -57,9 +52,8 @@ public class LivroController {
 		return livroConvert.entityToOutput(livroCriado);
 	}
 
-	@Operation(summary = "Altera livro", description = "Altera os dados do livro selecionado")
 	@PutMapping("/{id}")
-	public LivroOutput alteraLivro(@Parameter(description = "Id do livro", example = "1") @PathVariable Long id, @Parameter(description = "Representação de um livro") @Valid @RequestBody LivroInput livroInput) {
+	public LivroOutput alteraLivro(@PathVariable Long id, @Valid @RequestBody LivroInput livroInput) {
 		LivroEntity livroEntity = livroService.buscaPeloId(id);
 		livroConvert.copyDataInputToEntity(livroInput, livroEntity);
 
@@ -69,24 +63,21 @@ public class LivroController {
 		return livroConvert.entityToOutput(livroAlterado);
 	}
 
-	@Operation(summary = "Busca livro", description = "Busca o livro pelo seu id")
 	@GetMapping("/{id}")
-	public LivroOutput buscaLivroPorId(@Parameter(description = "Id do livro", example = "1") @PathVariable Long id) {
+	public LivroOutput buscaLivroPorId(@PathVariable Long id) {
 		LivroEntity livroEntity = livroService.buscaPeloId(id);
 		return livroConvert.entityToOutput(livroEntity);
 	}
 
-	@Operation(summary = "Lista livros", description = "Lista todos os livros cadastrados no sistema")
 	@GetMapping
 	public List<LivroOutput> listaLivros() {
 		List<LivroEntity> listaTodos = livroService.listaTodos();
 		return livroConvert.entityToOutput(listaTodos);
 	}
 
-	@Operation(summary = "Exclui livro", description = "Exclui o livro selecionado do sistema")
 	@DeleteMapping("/{id}")
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
-	public void removeLivro(@Parameter(description = "Id do livro", example = "1") @PathVariable Long id) {
+	public void removeLivro(@PathVariable Long id) {
 		LivroEntity livroEntity = livroService.buscaPeloId(id);
 		livroService.remover(livroEntity);
 	}

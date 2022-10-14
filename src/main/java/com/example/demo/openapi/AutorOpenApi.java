@@ -27,7 +27,7 @@ public interface AutorOpenApi {
 	@Operation(summary = "Cadastra autor", description = "Cadastra um novo autor no sistema")
 	@PostMapping
 	@ResponseStatus(code = HttpStatus.CREATED)
-	public AutorOutput criaAutor(@Parameter(description = "Representação de um usuário") @RequestBody @Valid AutorInput autor);
+	public AutorOutput criaAutor(@Parameter(description = "Representação de um autor") @RequestBody @Valid AutorInput autor);
 	
 	@Operation(summary = "Altera autor", description = "Altera os dados do autor selecionado")
 	@PutMapping("/{id}")
